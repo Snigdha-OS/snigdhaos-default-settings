@@ -1,93 +1,93 @@
 #!/bin/bash
 
-# Author        : Eshan Roy
-# Author URL    : https://eshanized.github.io/
+# author        : eshan roy
+# author url    : https://eshanized.github.io/
 
-# Colors for formatting output in terminal
-RED="\033[1;31m"        # Red color for errors
-GREEN="\033[1;32m"      # Green color for success messages
-YELLOW="\033[1;33m"     # Yellow color for warnings
-BLUE="\033[1;34m"       # Blue color for info messages
-RESET="\033[0m"         # Reset color to default
+# colors for formatting output in terminal
+RED="\033[1;31m"        # red color for errors
+GREEN="\033[1;32m"      # green color for success messages
+YELLOW="\033[1;33m"     # yellow color for warnings
+BLUE="\033[1;34m"       # blue color for info messages
+RESET="\033[0m"         # reset color to default
 
-# Log File path to save script output
+# log file path to save script output
 LOG_FILE="/var/log/snigdha_update_script.log"
 
-# Function to display error message and exit
+# function to display error message and exit
 error_handler() {
-    echo -e "\n${RED}🚨 An error occurred during the update process.${RESET}"  # Print error message in red
-    echo -e "${RED}Error on line $1. Please check your system and try again.${RESET}"  # Indicate the line number where error occurred
-    echo -e "$(date) - Error on line $1" >> $LOG_FILE  # Log error with timestamp
-    exit 1  # Exit the script with error status
+    echo -e "\n${RED}🚨 an error occurred during the update process.${RESET}"  # print error message in red
+    echo -e "${RED}error on line $1. please check your system and try again.${RESET}"  # indicate the line number where error occurred
+    echo -e "$(date) - error on line $1" >> $LOG_FILE  # log error with timestamp
+    exit 1  # exit the script with error status
 }
 
-# Trap errors and call error_handler when an error occurs
+# trap errors and call error_handler when an error occurs
 trap 'error_handler $LINENO' ERR
 
-# Function to display help message
+# function to display help message
 show_help() {
-    # Display general usage of the script
-    echo -e "${BLUE}Usage: ${RESET}$0 [options]"
+    # display general usage of the script
+    echo -e "${BLUE}usage: ${RESET}$0 [options]"
     echo -e ""
-    echo -e "${GREEN}This script will update the package database, upgrade all installed packages, and clean up orphaned packages.${RESET}"
+    echo -e "${GREEN}this script will update the package database, upgrade all installed packages, and clean up orphaned packages.${RESET}"
     echo -e ""
-    # Show available options for the script
-    echo -e "${YELLOW}Options:${RESET}"
-    echo -e "  ${GREEN}-h, --help${RESET}          Show this help message."
-    echo -e "  ${GREEN}-v, --verbose${RESET}       Enable verbose output."
-    echo -e "  ${GREEN}-d, --dry-run${RESET}       Show what would be done without making changes."
-    echo -e "  ${GREEN}-b, --backup${RESET}        Backup important configuration files before updating."
+    # show available options for the script
+    echo -e "${YELLOW}options:${RESET}"
+    echo -e "  ${GREEN}-h, --help${RESET}          show this help message."
+    echo -e "  ${GREEN}-v, --verbose${RESET}       enable verbose output."
+    echo -e "  ${GREEN}-d, --dry-run${RESET}       show what would be done without making changes."
+    echo -e "  ${GREEN}-b, --backup${RESET}        backup important configuration files before updating."
     echo -e ""
-    # Provide usage examples for the user
-    echo -e "${YELLOW}Example usage:${RESET}"
-    echo -e "  $0                         # Updates the system and removes orphaned packages."
-    echo -e "  $0 -v                      # Run in verbose mode."
-    echo -e "  $0 -d                      # Dry run (preview only)."
-    echo -e "  $0 -b                      # Backup configuration files before updating."
+    # provide usage examples for the user
+    echo -e "${YELLOW}example usage:${RESET}"
+    echo -e "  $0                         # updates the system and removes orphaned packages."
+    echo -e "  $0 -v                      # run in verbose mode."
+    echo -e "  $0 -d                      # dry run (preview only)."
+    echo -e "  $0 -b                      # backup configuration files before updating."
 }
 
-# Parse command line options for verbose, dry-run, and backup flags
-VERBOSE=false  # Default to false, verbose output is off
-DRY_RUN=false  # Default to false, dry-run mode is off
-BACKUP=false   # Default to false, backup is not done by default
+# parse command line options for verbose, dry-run, and backup flags
+VERBOSE=false  # default to false, verbose output is off
+DRY_RUN=false  # default to false, dry-run mode is off
+BACKUP=false   # default to false, backup is not done by default
 
-while [[ "$1" != "" ]]; do  # Loop through each command-line argument
+while [[ "$1" != "" ]]; do  # loop through each command-line argument
     case $1 in
-        -h|--help) show_help; exit 0 ;;        # If -h or --help is passed, show help and exit
-        -v|--verbose) VERBOSE=true ;;          # If -v or --verbose is passed, enable verbose mode
-        -d|--dry-run) DRY_RUN=true ;;          # If -d or --dry-run is passed, enable dry-run mode
-        -b|--backup) BACKUP=true ;;            # If -b or --backup is passed, enable backup option
-        *) echo -e "${RED}❌ Invalid option: $1${RESET}"; show_help; exit 1 ;;  # Handle invalid options
+        -h|--help) show_help; exit 0 ;;        # if -h or --help is passed, show help and exit
+        -v|--verbose) VERBOSE=true ;;          # if -v or --verbose is passed, enable verbose mode
+        -d|--dry-run) DRY_RUN=true ;;          # if -d or --dry-run is passed, enable dry-run mode
+        -b|--backup) BACKUP=true ;;            # if -b or --backup is passed, enable backup option
+        *) echo -e "${RED}❌ invalid option: $1${RESET}"; show_help; exit 1 ;;  # handle invalid options
     esac
-    shift  # Move to the next argument
+    shift  # move to the next argument
 done
 
-# Ensure the script is run as root for certain actions
-if [ "$EUID" -ne 0 ]; then  # Check if the script is being run by root user
-    echo -e "${RED}❌ Please run this script as root or with sudo.${RESET}"  # Print error if not root
-    exit 1  # Exit the script
+# ensure the script is run as root for certain actions
+if [ "$EUID" -ne 0 ]; then  # check if the script is being run by root user
+    echo -e "${RED}❌ please run this script as root or with sudo.${RESET}"  # print error if not root
+    exit 1  # exit the script
 fi
 
-# Warning message before proceeding with the update
-echo -e "${YELLOW}⚠️ WARNING: This script will update your system, upgrade installed packages, and clean up orphaned packages.${RESET}"
-if $BACKUP; then  # If the backup option is enabled
-    echo -e "${YELLOW}⚠️ You have chosen to backup important configuration files.${RESET}"
-    read -p "$(echo -e "${BLUE}Are you sure you want to proceed? [y/N]: ${RESET}")" CONFIRM  # Ask for confirmation
+# warning message before proceeding with the update
+echo -e "${YELLOW}⚠️ warning: this script will update your system, upgrade installed packages, and clean up orphaned packages.${RESET}"
+if $BACKUP; then  # if the backup option is enabled
+    echo -e "${YELLOW}⚠️ you have chosen to backup important configuration files.${RESET}"
+    read -p "$(echo -e "${BLUE}are you sure you want to proceed? [y/N]: ${RESET}")" CONFIRM  # ask for confirmation
 else
-    read -p "$(echo -e "${BLUE}Are you sure you want to proceed? [y/N]: ${RESET}")" CONFIRM  # Normal confirmation prompt
+    read -p "$(echo -e "${BLUE}are you sure you want to proceed? [y/N]: ${RESET}")" CONFIRM  # normal confirmation prompt
 fi
-if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then  # Check if user confirmed
-    echo -e "${RED}❌ Operation cancelled.${RESET}"  # Print cancellation message
-    exit 0  # Exit the script
+if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then  # check if user confirmed
+    echo -e "${RED}❌ operation cancelled.${RESET}"  # print cancellation message
+    exit 0  # exit the script
 fi
 
-# Backup important configuration files (optional)
+# backup important configuration files (optional)
 backup_config_files() {
-    echo -e "${BLUE}📦 Backing up important configuration files...${RESET}"  # Inform about backup
-    BACKUP_DIR="/home/$USER/important_configs"  # Directory to store backups
-    mkdir -p $BACKUP_DIR  # Create backup directory if it doesn't exist
+    echo -e "${BLUE}📦 backing up important configuration files...${RESET}"  # inform about backup
+    BACKUP_DIR="/home/$USER/important_configs"  # directory to store backups
+    mkdir -p $BACKUP_DIR  # create backup directory if it doesn't exist
 
-    # List of important config files to back up
+    # list of important config files to back up
     CONFIG_FILES=(
         "/etc/pacman.conf"
         "/etc/makepkg.conf"
@@ -97,55 +97,55 @@ backup_config_files() {
         "$HOME/.zshrc"
     )
 
-    for FILE in "${CONFIG_FILES[@]}"; do  # Loop through each config file
-        if [ -e "$FILE" ]; then  # Check if the file exists
-            cp -r "$FILE" "$BACKUP_DIR" || { echo -e "${RED}❌ Failed to back up $FILE.${RESET}"; exit 1; }  # Copy the file to backup
-            echo -e "${GREEN}✅ Backed up $FILE${RESET}"  # Inform the user the file was backed up
+    for FILE in "${CONFIG_FILES[@]}"; do  # loop through each config file
+        if [ -e "$FILE" ]; then  # check if the file exists
+            cp -r "$FILE" "$BACKUP_DIR" || { echo -e "${RED}❌ failed to back up $FILE.${RESET}"; exit 1; }  # copy the file to backup
+            echo -e "${GREEN}✅ backed up $FILE${RESET}"  # inform the user the file was backed up
         else
-            echo -e "${YELLOW}⚠️ Skipping $FILE (not found).${RESET}"  # If the file is not found, skip it
+            echo -e "${YELLOW}⚠️ skipping $FILE (not found).${RESET}"  # if the file is not found, skip it
         fi
     done
 }
 
-# Log the start of the script
-echo -e "$(date) - Starting update process" >> $LOG_FILE  # Log the start with timestamp
+# log the start of the script
+echo -e "$(date) - starting update process" >> $LOG_FILE  # log the start with timestamp
 
-# Update the package database and upgrade packages
-echo -e "${BLUE}🔄 Updating the package database...${RESET}"
-if $VERBOSE; then  # If verbose mode is enabled
-    sudo pacman -Sy --verbose || error_handler $LINENO  # Run with verbose output
+# update the package database and upgrade packages
+echo -e "${BLUE}🔄 updating the package database...${RESET}"
+if $VERBOSE; then  # if verbose mode is enabled
+    sudo pacman -Sy --verbose || error_handler $LINENO  # run with verbose output
 else
-    sudo pacman -Sy || error_handler $LINENO  # Run normally
+    sudo pacman -Sy || error_handler $LINENO  # run normally
 fi
 
-echo -e "${BLUE}📦 Upgrading installed packages...${RESET}"
-if $DRY_RUN; then  # If dry-run mode is enabled
-    echo -e "${YELLOW}⚠️ Dry run mode: The following commands would be executed but won't make changes.${RESET}"
-    echo -e "  sudo pacman -Su --noconfirm"  # Show the dry-run commands
+echo -e "${BLUE}📦 upgrading installed packages...${RESET}"
+if $DRY_RUN; then  # if dry-run mode is enabled
+    echo -e "${YELLOW}⚠️ dry run mode: the following commands would be executed but won't make changes.${RESET}"
+    echo -e "  sudo pacman -Su --noconfirm"  # show the dry-run commands
 else
-    if $VERBOSE; then  # If verbose mode is enabled
-        sudo pacman -Su --noconfirm --verbose || error_handler $LINENO  # Upgrade with verbose
+    if $VERBOSE; then  # if verbose mode is enabled
+        sudo pacman -Su --noconfirm --verbose || error_handler $LINENO  # upgrade with verbose
     else
-        sudo pacman -Su --noconfirm || error_handler $LINENO  # Upgrade normally
+        sudo pacman -Su --noconfirm || error_handler $LINENO  # upgrade normally
     fi
 fi
 
-# Clean up orphaned packages
-echo -e "${BLUE}🧹 Cleaning up orphaned packages...${RESET}"
-if $DRY_RUN; then  # If dry-run mode is enabled
-    orphaned_packages=$(pacman -Qtdq)  # List orphaned packages
-    if [ -z "$orphaned_packages" ]; then  # If no orphaned packages
-        echo -e "${YELLOW}No orphaned packages to remove.${RESET}"  # Inform the user
-    else  # If orphaned packages exist
-        echo -e "${YELLOW}The following orphaned packages would be removed:${RESET} $orphaned_packages"
+# clean up orphaned packages
+echo -e "${BLUE}🧹 cleaning up orphaned packages...${RESET}"
+if $DRY_RUN; then  # if dry-run mode is enabled
+    orphaned_packages=$(pacman -Qtdq)  # list orphaned packages
+    if [ -z "$orphaned_packages" ]; then  # if no orphaned packages
+        echo -e "${YELLOW}no orphaned packages to remove.${RESET}"  # inform the user
+    else  # if orphaned packages exist
+        echo -e "${YELLOW}the following orphaned packages would be removed:${RESET} $orphaned_packages"
     fi
-else  # If dry-run mode is not enabled
-    sudo pacman -Rns $(pacman -Qtdq) --noconfirm || echo -e "${YELLOW}No orphaned packages to remove.${RESET}"  # Remove orphaned packages
+else  # if dry-run mode is not enabled
+    sudo pacman -Rns $(pacman -Qtdq) --noconfirm || echo -e "${YELLOW}no orphaned packages to remove.${RESET}"  # remove orphaned packages
 fi
 
-# Log successful completion
-echo -e "$(date) - System successfully updated." >> $LOG_FILE  # Log the successful completion
+# log successful completion
+echo -e "$(date) - system successfully updated." >> $LOG_FILE  # log the successful completion
 
-# Final success message
-echo -e "\n${GREEN}✅ System successfully updated!${RESET}"  # Print success message
-exit 0  # Exit the script
+# final success message
+echo -e "\n${GREEN}✅ system successfully updated!${RESET}"  # print success message
+exit 0  # exit the script
