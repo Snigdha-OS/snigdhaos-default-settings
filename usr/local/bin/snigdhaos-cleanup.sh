@@ -5,17 +5,26 @@
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
-# Colors
+# Colors for terminal output
 RED="\033[1;31m"
 GREEN="\033[1;32m"
 YELLOW="\033[1;33m"
 BLUE="\033[1;34m"
 RESET="\033[0m"
 
+# Log file path
+LOG_FILE="/var/log/snigdhaos_cleanup.log"
+
+# Function to log messages
+log_message() {
+    echo -e "$(date +'%Y-%m-%d %H:%M:%S') - $1" >> $LOG_FILE
+}
+
 # Function to display error message and exit
 error_handler() {
     echo -e "\n${RED}🚨 An error occurred during the cleanup process.${RESET}"
-    echo -e "${RED}Error on line $1. Please check your system and try again.${RESET}"
+    echo -e "${RED}Error on line $1. Please check the system logs for details.${RESET}"
+    log_message "Error occurred on line $1"
     exit 1
 }
 
@@ -26,21 +35,21 @@ trap 'error_handler $LINENO' ERR
 show_help() {
     echo -e "${BLUE}Usage: ${RESET}snigdhaos-cleanup.sh [OPTIONS]"
     echo -e ""
-    echo -e "${GREEN}This script will clean up your system by deleting unused package caches, crash reports, application logs, application caches, and trash.${RESET}"
+    echo -e "${GREEN}This script cleans up your system by removing unused package caches, crash reports, application logs, application caches, and trash.${RESET}"
     echo -e ""
     echo -e "${YELLOW}Options:${RESET}"
     echo -e "  ${GREEN}-h, --help${RESET}          Show this help message."
-    echo -e "  ${GREEN}-v, --version${RESET}       Display the script version."
+    echo -e "  ${GREEN}-v, --version${RESET}       Show script version."
     echo -e "  ${GREEN}-f, --force${RESET}         Skip confirmation prompt and force cleanup."
     echo -e ""
     echo -e "Example usage:"
-    echo -e "  snigdhaos-cleanup.sh                 # Starts the cleanup process with a confirmation prompt."
-    echo -e "  snigdhaos-cleanup.sh -f              # Skips the confirmation and forces cleanup."
+    echo -e "  snigdhaos-cleanup.sh                 # Starts the cleanup process with confirmation prompt."
+    echo -e "  snigdhaos-cleanup.sh -f              # Skips confirmation and forces cleanup."
 }
 
 # Function to display version information
 show_version() {
-    echo -e "${BLUE}Version: 1.0.0${RESET}"
+    echo -e "${BLUE}Version: 1.1.0${RESET}"
 }
 
 # Parse command line options
@@ -112,17 +121,19 @@ echo -e "${BLUE}🧹 Starting cleanup process...${RESET}"
 
 # Function to clean package cache
 clean_package_cache() {
-    echo -e "${YELLOW}⚠️ Deleting package cache (this will remove old cached packages and free up disk space)...${RESET}"
+    echo -e "${YELLOW}⚠️ Deleting package cache (this will remove old cached packages)...${RESET}"
     sudo pacman -Sc --noconfirm || { echo -e "${RED}❌ Failed to clean package cache.${RESET}"; exit 1; }
+    log_message "Package cache cleaned"
     echo -e "${GREEN}✅ Package cache cleaned.${RESET}"
 }
 
 # Function to clean crash reports
 clean_crash_reports() {
-    echo -e "${YELLOW}⚠️ Deleting crash reports (this will remove saved system crash data)...${RESET}"
+    echo -e "${YELLOW}⚠️ Deleting crash reports...${RESET}"
     CRASH_DIR="/var/lib/systemd/coredump"
     if [ -d "$CRASH_DIR" ]; then
         sudo rm -rf "$CRASH_DIR"/* || { echo -e "${RED}❌ Failed to clean crash reports.${RESET}"; exit 1; }
+        log_message "Crash reports cleaned"
         echo -e "${GREEN}✅ Crash reports cleaned.${RESET}"
     else
         echo -e "${GREEN}✅ No crash reports found.${RESET}"
@@ -131,25 +142,28 @@ clean_crash_reports() {
 
 # Function to clean application logs
 clean_application_logs() {
-    echo -e "${YELLOW}⚠️ Truncating application logs (this will reset log files to 0 bytes)...${RESET}"
+    echo -e "${YELLOW}⚠️ Truncating application logs...${RESET}"
     LOG_DIR="/var/log"
     sudo find "$LOG_DIR" -type f -name "*.log" -exec truncate -s 0 {} \; || { echo -e "${RED}❌ Failed to clean application logs.${RESET}"; exit 1; }
+    log_message "Application logs cleaned"
     echo -e "${GREEN}✅ Application logs cleaned.${RESET}"
 }
 
 # Function to clean application caches
 clean_application_caches() {
-    echo -e "${YELLOW}⚠️ Deleting application caches (this will remove all cache files from user directories)...${RESET}"
+    echo -e "${YELLOW}⚠️ Deleting application caches...${RESET}"
     CACHE_DIR="/home/*/.cache"
     sudo rm -rf $CACHE_DIR/* || { echo -e "${RED}❌ Failed to clean application caches.${RESET}"; exit 1; }
+    log_message "Application caches cleaned"
     echo -e "${GREEN}✅ Application caches cleaned.${RESET}"
 }
 
 # Function to empty trash
 clean_trash() {
-    echo -e "${YELLOW}⚠️ Emptying trash (this will delete all items in the trash folders)...${RESET}"
+    echo -e "${YELLOW}⚠️ Emptying trash...${RESET}"
     TRASH_DIR="/home/*/.local/share/Trash"
     sudo rm -rf $TRASH_DIR/* || { echo -e "${RED}❌ Failed to empty trash.${RESET}"; exit 1; }
+    log_message "Trash emptied"
     echo -e "${GREEN}✅ Trash emptied.${RESET}"
 }
 
@@ -157,4 +171,5 @@ clean_trash() {
 calculate_space_freed
 
 echo -e "\n${GREEN}✅ Cleanup completed successfully!${RESET}"
+log_message "Cleanup completed successfully"
 exit 0
