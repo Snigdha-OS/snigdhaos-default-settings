@@ -22,23 +22,55 @@ error_handler() {
 # Trap errors and call error_handler
 trap 'error_handler $LINENO' ERR
 
+# Function to display help message
+show_help() {
+    echo -e "${BLUE}Usage: ${RESET}snigdhaos-cleanup.sh [OPTIONS]"
+    echo -e ""
+    echo -e "${GREEN}This script will clean up your system by deleting unused package caches, crash reports, application logs, application caches, and trash.${RESET}"
+    echo -e ""
+    echo -e "${YELLOW}Options:${RESET}"
+    echo -e "  ${GREEN}-h, --help${RESET}          Show this help message."
+    echo -e "  ${GREEN}-v, --version${RESET}       Display the script version."
+    echo -e "  ${GREEN}-f, --force${RESET}         Skip confirmation prompt and force cleanup."
+    echo -e ""
+    echo -e "Example usage:"
+    echo -e "  snigdhaos-cleanup.sh                 # Starts the cleanup process with a confirmation prompt."
+    echo -e "  snigdhaos-cleanup.sh -f              # Skips the confirmation and forces cleanup."
+}
+
+# Function to display version information
+show_version() {
+    echo -e "${BLUE}Version: 1.0.0${RESET}"
+}
+
+# Parse command line options
+FORCE_CLEAN=false
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--version)
+            show_version
+            exit 0
+            ;;
+        -f|--force)
+            FORCE_CLEAN=true
+            shift
+            ;;
+        *)
+            echo -e "${RED}❌ Unknown option: $1${RESET}"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
 # Ensure the script is run as root for certain actions
 if [ "$EUID" -ne 0 ]; then
     echo -e "${RED}❌ Please run this script as root or with sudo.${RESET}"
     exit 1
-fi
-
-echo -e "${YELLOW}⚠️ WARNING: This script will permanently delete unnecessary files, logs, and caches to free up disk space.${RESET}"
-echo -e "${BLUE}👉 The following will be cleaned:${RESET}"
-echo -e "${GREEN}   - Package cache${RESET}"
-echo -e "${GREEN}   - Crash reports${RESET}"
-echo -e "${GREEN}   - Application logs${RESET}"
-echo -e "${GREEN}   - Application caches${RESET}"
-echo -e "${GREEN}   - Trash${RESET}"
-read -p "$(echo -e "${YELLOW}❓ Are you sure you want to proceed? [y/N]: ${RESET}")" CONFIRM
-if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
-    echo -e "${RED}❌ Cleanup operation cancelled.${RESET}"
-    exit 0
 fi
 
 # Function to calculate space freed
@@ -46,7 +78,7 @@ calculate_space_freed() {
     local before_size
     local after_size
 
-    before_size=$(du -sh / | awk '{print $1}')
+    before_size=$(du -sh --exclude=/proc --exclude=/sys --exclude=/run --exclude=/tmp / | awk '{print $1}')
     
     # Running cleanup functions
     clean_package_cache
@@ -55,10 +87,26 @@ calculate_space_freed() {
     clean_application_caches
     clean_trash
 
-    after_size=$(du -sh / | awk '{print $1}')
+    after_size=$(du -sh --exclude=/proc --exclude=/sys --exclude=/run --exclude=/tmp / | awk '{print $1}')
 
     echo -e "${GREEN}Space freed: $before_size -> $after_size${RESET}"
 }
+
+# Prompt for confirmation if not forced
+if ! $FORCE_CLEAN; then
+    echo -e "${YELLOW}⚠️ WARNING: This script will permanently delete unnecessary files, logs, and caches to free up disk space.${RESET}"
+    echo -e "${BLUE}👉 The following will be cleaned:${RESET}"
+    echo -e "${GREEN}   - Package cache${RESET}"
+    echo -e "${GREEN}   - Crash reports${RESET}"
+    echo -e "${GREEN}   - Application logs${RESET}"
+    echo -e "${GREEN}   - Application caches${RESET}"
+    echo -e "${GREEN}   - Trash${RESET}"
+    read -p "$(echo -e "${YELLOW}❓ Are you sure you want to proceed? [y/N]: ${RESET}")" CONFIRM
+    if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
+        echo -e "${RED}❌ Cleanup operation cancelled.${RESET}"
+        exit 0
+    fi
+fi
 
 echo -e "${BLUE}🧹 Starting cleanup process...${RESET}"
 
